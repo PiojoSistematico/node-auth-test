@@ -15,17 +15,18 @@ app.post("/login", (req, res) => {
   res.send("Login");
 });
 
-app.post("/register", (req, res) => {
+app.post("/register", async (req, res) => {
   const { userName, password } = req.body;
 
   try {
-    const id = createUser({ userName, password });
-    res.send({ id });
+    const id = await createUser({ userName, password });
+    console.log(id);
+    res.send({ id: id });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    if (error instanceof Error) {
+      res.status(400).json({ message: error.message });
+    }
   }
-
-  res.send("Register");
 });
 
 app.post("/logout", (req, res) => {

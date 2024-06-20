@@ -1,15 +1,22 @@
-import dbLocal from "db-local";
+const dbLocal = require("db-local");
 import crypto from "crypto";
+const bcrypt = require("bcrypt");
 
 const { Schema } = new dbLocal({ path: "./database" });
 
 const User = Schema("User", {
-  id: { type: Number, required: true },
+  _id: { type: String, required: true },
   userName: { type: String, default: "Customer" },
   password: { type: String, default: "Customer" },
 });
 
-export function createUser({ userName, password }) {
+export async function createUser({
+  userName,
+  password,
+}: {
+  userName: string;
+  password: string;
+}): Promise<string> {
   /* Simple validations */
   if (typeof userName !== "string")
     throw new Error("userName must be a string");
@@ -17,7 +24,7 @@ export function createUser({ userName, password }) {
     throw new Error("userName must be at least three characters long");
   if (typeof password !== "string")
     throw new Error("password must be a string");
-  if (userName.length < 6)
+  if (password.length < 6)
     throw new Error("password must be at least six characters long");
 
   /* Check unique id */
@@ -25,8 +32,10 @@ export function createUser({ userName, password }) {
   if (user) throw new Error("userName already exists");
   const id = crypto.randomUUID();
 
+  const hashedPassword = await bcrypt.hash(password, 10);
+
   /* Create and save the new user */
-  User.create({ id: id, userName: userName, password: password }).save();
+  User.create({ _id: id, userName: userName, password: hashedPassword }).save();
 
   return id;
 }
