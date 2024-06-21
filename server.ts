@@ -1,5 +1,6 @@
 import express from "express";
-import { createUser } from "./database/db";
+import { createUser, login } from "./database/db";
+import jwt from "jsonwebtoken";
 
 const app = express();
 
@@ -11,8 +12,22 @@ app.get("/", (req, res) => {
   res.send("Hello");
 });
 
-app.post("/login", (req, res) => {
-  res.send("Login");
+app.post("/login", async (req, res) => {
+  const { userName, password } = req.body;
+
+  try {
+    const info = await login({ userName, password });
+    const token = jwt.sign(
+      { id: info.id, userName: info.userName },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: "1h" }
+    );
+    res.send({ user: info.userName, token: token });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(400).json({ message: error.message });
+    }
+  }
 });
 
 app.post("/register", async (req, res) => {

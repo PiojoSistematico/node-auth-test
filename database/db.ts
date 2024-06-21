@@ -40,6 +40,22 @@ export async function createUser({
   return id;
 }
 
+export async function login({
+  userName,
+  password,
+}: {
+  userName: string;
+  password: string;
+}) {
+  const user = User.findOne({ userName: userName }); // Object
+  if (!user) throw new Error("userName does not exist");
+
+  const isValid = await bcrypt.compare(password, user.password);
+  if (!isValid) throw new Error("wrong password");
+
+  return { id: user._id, userName: userName };
+}
+
 /* 
 const user = User.create({
     _id: 1,
